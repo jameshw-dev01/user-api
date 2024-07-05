@@ -1,0 +1,1 @@
+docker run --name userdb -e MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD" -p 3306:3306 -d mysql:lts

@@ -1,16 +1,17 @@
-package db
+package database
 
 import (
+	"database/sql"
 	"errors"
 	"log"
 	"os"
 
-	"github.com/glebarez/sqlite"
 	"github.com/jameshw-dev01/user-api/spec"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
-type UserDB struct {
+type userDB struct {
 	Username string `gorm:"primaryKey"`
 	Hash     string
 	Email    string
@@ -18,12 +19,12 @@ type UserDB struct {
 	Age      uint
 }
 
-type DBWrapper struct {
+type dbWrapper struct {
 	DB *gorm.DB
 }
 
-func ToUserDB(user spec.User) UserDB {
-	return UserDB{
+func toUserDB(user spec.User) userDB {
+	return userDB{
 		Username: user.Username,
 		Hash:     user.Hash,
 		Email:    user.Email,
@@ -32,7 +33,7 @@ func ToUserDB(user spec.User) UserDB {
 	}
 }
 
-func ToSpecUser(user UserDB) spec.User {
+func ToSpecUser(user userDB) spec.User {
 	return spec.User{
 		Username: user.Username,
 		Hash:     user.Hash,
@@ -43,8 +44,8 @@ func ToSpecUser(user UserDB) spec.User {
 }
 
 // Create implements spec.DbInterface.
-func (d DBWrapper) Create(user spec.User) error {
-	userDb := ToUserDB(user)
+func (d dbWrapper) Create(user spec.User) error {
+	userDb := toUserDB(user)
 	ret := d.DB.Create(&userDb)
 	if ret.Error != nil {
 		return ret.Error
@@ -56,8 +57,8 @@ func (d DBWrapper) Create(user spec.User) error {
 }
 
 // Delete implements spec.DbInterface.
-func (d DBWrapper) Delete(user spec.User) error {
-	userDb := UserDB{Username: user.Username}
+func (d dbWrapper) Delete(user spec.User) error {
+	userDb := userDB{Username: user.Username}
 	ret := d.DB.Delete(&userDb)
 	if ret.Error != nil {
 		return ret.Error
@@ -69,8 +70,8 @@ func (d DBWrapper) Delete(user spec.User) error {
 }
 
 // ReadAll implements spec.DbInterface.
-func (d DBWrapper) ReadAll() ([]spec.User, error) {
-	var records []UserDB
+func (d dbWrapper) ReadAll() ([]spec.User, error) {
+	var records []userDB
 	ret := d.DB.Find(&records)
 	if ret.Error != nil {
 		return []spec.User{}, ret.Error
@@ -82,8 +83,8 @@ func (d DBWrapper) ReadAll() ([]spec.User, error) {
 	return specUsers, nil
 }
 
-func (d DBWrapper) Read(username string) (spec.User, error) {
-	var user UserDB
+func (d dbWrapper) Read(username string) (spec.User, error) {
+	var user userDB
 	user.Username = username
 	ret := d.DB.First(&user)
 	if ret.Error != nil {
@@ -96,8 +97,8 @@ func (d DBWrapper) Read(username string) (spec.User, error) {
 }
 
 // Update implements spec.DbInterface.
-func (d DBWrapper) Update(user spec.User) error {
-	userDb := ToUserDB(user)
+func (d dbWrapper) Update(user spec.User) error {
+	userDb := toUserDB(user)
 	ret := d.DB.Model(&userDb).Updates(userDb)
 	if ret.Error != nil {
 		return ret.Error
@@ -108,16 +109,36 @@ func (d DBWrapper) Update(user spec.User) error {
 	return nil
 }
 
-func initDB() spec.DbInterface {
-	os.Remove("gorm.db")
-	db, err := gorm.Open(sqlite.Open("gorm.db"), &gorm.Config{})
+func InitDB() {
+	password := os.Getenv("MYSQL_ROOT_PASSWORD")
+	db, err := sql.Open("mysql", "root:"+password+"@tcp(127.0.0.1:3306)/")
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	_, err = db.Exec("CREATE DATABASE IF NOT EXISTS USERDB")
+	if err != nil {
+		panic(err)
+	}
+}
+
+func GetDBConnection(resetDb bool) spec.DbInterface {
+	InitDB()
+	password := os.Getenv("MYSQL_ROOT_PASSWORD")
+
+	dsn := "root:" + password + "@tcp(localhost:3306)/USERDB?charset=utf8mb4&parseTime=True&loc=Local"
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Failed to connect database")
 	}
-	err = db.AutoMigrate(&UserDB{})
+	err = db.AutoMigrate(&userDB{})
 	if err != nil {
 		log.Fatal("Failed to migrate User table")
 	}
-	wrap := DBWrapper{DB: db}
+	if resetDb {
+		db.Delete(&userDB{}, "1=1")
+	}
+	wrap := dbWrapper{DB: db}
 	return wrap
 }

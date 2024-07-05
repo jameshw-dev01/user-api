@@ -1,10 +1,11 @@
-package db
+package database
 
 import (
 	"slices"
 	"testing"
 
 	"github.com/jameshw-dev01/user-api/spec"
+	"github.com/stretchr/testify/assert"
 )
 
 func testData() []spec.User {
@@ -50,51 +51,35 @@ func testData() []spec.User {
 	return []spec.User{user1, user2, user3, user4, user5}
 }
 
-func IsEqual(u1 spec.User, u2 spec.User) bool {
-	return u1.Username == u2.Username &&
-		u1.Hash == u2.Hash &&
-		u1.Email == u2.Email &&
-		u1.Name == u2.Name &&
-		u1.Age == u2.Age
-}
-
 func TestCreate1(t *testing.T) {
-	db := initDB()
+	db := GetDBConnection(true)
 	users := testData()
 	user1 := users[0]
 	db.Create(user1)
 	retrieved, err := db.Read("john_doe")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !IsEqual(user1, retrieved) {
-		t.Fatal("users are not equal", user1, retrieved)
-	}
+	assert.Equal(t, nil, err)
+	assert.Equal(t, user1, retrieved, "users are not equal")
 }
 
 func TestReadAll(t *testing.T) {
-	db := initDB()
+	db := GetDBConnection(true)
 	users := testData()
 	user1 := users[0]
 	user2 := users[1]
 	db.Create(user1)
 	db.Create(user2)
 	retrieved, err := db.ReadAll()
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Equal(t, nil, err)
 	idx1 := slices.IndexFunc(retrieved, func(u spec.User) bool { return u.Username == user1.Username })
 	idx2 := slices.IndexFunc(retrieved, func(u spec.User) bool { return u.Username == user2.Username })
-	if idx1 == -1 || !IsEqual(retrieved[idx1], user1) {
-		t.Fatal("failed to retrieve user1")
-	}
-	if idx2 == -1 || !IsEqual(retrieved[idx2], user2) {
-		t.Fatal("failed to retrieve user2")
-	}
+	assert.NotEqual(t, -1, idx1, "failed to retrieve user1")
+	assert.NotEqual(t, -1, idx2, "failed to retrieve user2")
+	assert.Equal(t, user1, retrieved[idx1], "user1 not equal")
+	assert.Equal(t, user2, retrieved[idx2], "user2 not equal")
 }
 
 func TestUpdate(t *testing.T) {
-	db := initDB()
+	db := GetDBConnection(true)
 	users := testData()
 	user1 := users[0]
 	db.Create(user1)
@@ -103,16 +88,12 @@ func TestUpdate(t *testing.T) {
 	user1_updated.Email = "john_doe@test.com"
 	db.Update(user1_updated)
 	retrieved, err := db.Read("john_doe")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !IsEqual(user1_updated, retrieved) {
-		t.Fatal("users are not equal", user1, retrieved)
-	}
+	assert.Equal(t, nil, err)
+	assert.Equal(t, user1_updated, retrieved)
 }
 
 func TestDelete(t *testing.T) {
-	db := initDB()
+	db := GetDBConnection(true)
 	users := testData()
 	n := len(users)
 	for _, user := range users {
@@ -130,7 +111,6 @@ func TestDelete(t *testing.T) {
 	}
 	idx1 := slices.IndexFunc(retrieved, func(u spec.User) bool { return u.Username == users[2].Username })
 	idx2 := slices.IndexFunc(retrieved, func(u spec.User) bool { return u.Username == users[3].Username })
-	if idx1 != -1 || idx2 != -1 {
-		t.Fatal("deleted users still in database")
-	}
+	assert.Equal(t, -1, idx1, "user2 not deleted")
+	assert.Equal(t, -1, idx2, "user3 not deleted")
 }
