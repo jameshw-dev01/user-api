@@ -1,15 +1,6 @@
-# API specification
-create user:
-POST /user
-{
-    id: string, primary key
-    secret: string, hash of password
-    salt: string
-    
-}
-
-Protected endpoints: use authorization header
-GET /user/:id
-PATCH /user/:id
-    do not allow changing id
-
+# Further steps
+- Email Verification
+- Allow changing password
+- Allow unauthenticated users to get a list of public fields of all users (GET list)
+- Store Date of Birth instead of Age
+- Allow the db to push information to server through a listener so if an admin or some other service updates the db the changes will update the in memory data store

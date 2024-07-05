@@ -2,19 +2,21 @@
 
 This User API is implemented in Go. It can store and retrieve a user's name, age, and email. It implements the following methods:
 
-Requires HTTP Basic Auth (username and password strings are extracted from the header)  
+
 POST /api/v1/user  
+Requires HTTP Basic Auth (username and password strings are extracted from the header)  
 The body must be a json with fields: "age" int, "name" string, "email" string  
 
-Requires HTTP Basic Auth  
 GET /api/v1/user/:username  
-
 Requires HTTP Basic Auth  
+
+
 PUT /api/v1/user/:username  
+Requires HTTP Basic Auth  
 The body must be a json with fields: "age" int, "name" string, "email" string  
 
-Requires HTTP Basic Auth  
 DELETE /api/v1/user/:username  
+Requires HTTP Basic Auth  
 
 This API meets the requirements of a REST API.  
 - All methods are stateless (do not depend on previous requests)
