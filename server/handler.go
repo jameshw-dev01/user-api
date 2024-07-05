@@ -93,6 +93,7 @@ func updateUser(c *gin.Context, s *ServerContext) {
 	err := c.BindJSON(&userResponse)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
+		return
 	}
 	user := spec.User{
 		Username: username,
