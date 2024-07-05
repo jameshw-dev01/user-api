@@ -14,7 +14,7 @@ type ServerContext struct {
 }
 
 func setupRouter(resetDB bool) *gin.Engine {
-	s := ServerContext{Users: make(map[string]spec.User), DB: database.GetDBConnection(resetDB)}
+	s := ServerContext{Users: make(map[string]spec.User), DB: database.GetDBConnection(resetDB, "PROD")}
 	users, err := s.DB.ReadAll()
 	if err != nil {
 		log.Fatal(err)

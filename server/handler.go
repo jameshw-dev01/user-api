@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"regexp"
 
@@ -112,7 +111,6 @@ func updateUser(c *gin.Context, s *ServerContext) {
 }
 
 func getUser(c *gin.Context, s *ServerContext) {
-	fmt.Print("Called get")
 	username := c.Param("username")
 	user := s.Users[username]
 	if user.Username == "" {

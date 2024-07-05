@@ -52,7 +52,7 @@ func testData() []spec.User {
 }
 
 func TestCreate1(t *testing.T) {
-	db := GetDBConnection(true)
+	db := GetDBConnection(true, "TEST")
 	users := testData()
 	user1 := users[0]
 	db.Create(user1)
@@ -62,7 +62,7 @@ func TestCreate1(t *testing.T) {
 }
 
 func TestReadAll(t *testing.T) {
-	db := GetDBConnection(true)
+	db := GetDBConnection(true, "TEST")
 	users := testData()
 	user1 := users[0]
 	user2 := users[1]
@@ -79,7 +79,7 @@ func TestReadAll(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	db := GetDBConnection(true)
+	db := GetDBConnection(true, "TEST")
 	users := testData()
 	user1 := users[0]
 	db.Create(user1)
@@ -93,7 +93,7 @@ func TestUpdate(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	db := GetDBConnection(true)
+	db := GetDBConnection(true, "TEST")
 	users := testData()
 	n := len(users)
 	for _, user := range users {

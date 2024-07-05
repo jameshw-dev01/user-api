@@ -103,13 +103,10 @@ func (d dbWrapper) Update(user spec.User) error {
 	if ret.Error != nil {
 		return ret.Error
 	}
-	if ret.RowsAffected != 1 {
-		return errors.New("wrong number of rows affected")
-	}
 	return nil
 }
 
-func InitDB() {
+func InitDB(dbname string) {
 	password := os.Getenv("MYSQL_ROOT_PASSWORD")
 	db, err := sql.Open("mysql", "root:"+password+"@tcp(127.0.0.1:3306)/")
 	if err != nil {
@@ -117,17 +114,17 @@ func InitDB() {
 	}
 	defer db.Close()
 
-	_, err = db.Exec("CREATE DATABASE IF NOT EXISTS USERDB")
+	_, err = db.Exec("CREATE DATABASE IF NOT EXISTS " + dbname)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func GetDBConnection(resetDb bool) spec.DbInterface {
-	InitDB()
+func GetDBConnection(resetDb bool, dbname string) spec.DbInterface {
+	InitDB(dbname)
 	password := os.Getenv("MYSQL_ROOT_PASSWORD")
 
-	dsn := "root:" + password + "@tcp(localhost:3306)/USERDB?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := "root:" + password + "@tcp(localhost:3306)/" + dbname + "?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Failed to connect database")
